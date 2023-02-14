@@ -53,45 +53,79 @@ class AuthTests(TestCase):
         db.create_all()
 
     def test_signup(self):
-        # TODO: Write a test for the signup route. It should:
-        # - Make a POST request to /signup, sending a username & password
+
+        form_data = {
+            'username': 'scottzyang',
+            'password': 'thisismypassword'
+        }
+        self.app.post('/signup', data=form_data)
         # - Check that the user now exists in the database
-        pass
+        new_user = User.query.filter_by(username='scottzyang').one()
+        self.assertIsNotNone(new_user)
+        self.assertEqual(new_user.username, 'scottzyang')
 
     def test_signup_existing_user(self):
-        # TODO: Write a test for the signup route. It should:
-        # - Create a user
-        # - Make a POST request to /signup, sending the same username & password
-        # - Check that the form is displayed again with an error message
-        pass
+
+        create_user()
+
+        form_data = {
+            'username': 'me1',
+            'password': 'password'
+        }
+        response = self.app.post('/signup', data=form_data)
+        response_data = response.get_data(as_text=True)
+
+        self.assertIn('<li class="error">That username is taken. Please choose a different one.</li>', response_data)
 
     def test_login_correct_password(self):
-        # TODO: Write a test for the login route. It should:
-        # - Create a user
-        # - Make a POST request to /login, sending the created username & password
-        # - Check that the "login" button is not displayed on the homepage
-        pass
+
+        create_user()
+
+        form_data = {
+            'username': 'me1',
+            'password': 'password'
+        }
+
+        response = self.app.post('/login', data=form_data)
+        response_data = response.get_data(as_text=True)
+
+        self.assertNotIn('<a href="/login">Log In</a>', response_data)
 
     def test_login_nonexistent_user(self):
-        # TODO: Write a test for the login route. It should:
-        # - Make a POST request to /login, sending a username & password
-        # - Check that the login form is displayed again, with an appropriate
-        #   error message
-        pass
+        form_data = {
+            'username': 'scottzyang',
+            'password': 'asdfasdf'
+        }
+
+        response = self.app.post('/login', data=form_data)
+        response_data = response.get_data(as_text=True)
+
+        self.assertIn('<li class="error">No user with that username. Please try again.</li>', response_data)
+
 
     def test_login_incorrect_password(self):
-        # TODO: Write a test for the login route. It should:
-        # - Create a user
-        # - Make a POST request to /login, sending the created username &
-        #   an incorrect password
-        # - Check that the login form is displayed again, with an appropriate
-        #   error message
-        pass
+        create_user()
+
+        form_data = {
+            'username': 'me1',
+            'password': 'pazzword'
+        }
+        response = self.app.post('/login', data=form_data)
+        response_data = response.get_data(as_text=True)
+
+        self.assertIn('<li class="error">Password doesn&#39;t match. Please try again.</li>', response_data)
 
     def test_logout(self):
-        # TODO: Write a test for the logout route. It should:
-        # - Create a user
-        # - Log the user in (make a POST request to /login)
-        # - Make a GET request to /logout
-        # - Check that the "login" button appears on the homepage
-        pass
+        create_user()
+        
+        form_data = {
+            'username': 'me1',
+            'password': 'password'
+        }
+
+        self.app.post('/login', data=form_data)
+        response = self.app.get('/logout', follow_redirects=True)
+        response_data = response.get_data(as_text=True)
+  
+        self.assertIn('<a href="/login">Log In</a>', response_data)
+
